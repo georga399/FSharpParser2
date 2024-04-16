@@ -890,6 +890,15 @@ class FSharpParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by FSharpParser#cond_ops.
+    def enterCond_ops(self, ctx:FSharpParser.Cond_opsContext):
+        pass
+
+    # Exit a parse tree produced by FSharpParser#cond_ops.
+    def exitCond_ops(self, ctx:FSharpParser.Cond_opsContext):
+        pass
+
+
     # Enter a parse tree produced by FSharpParser#expression.
     def enterExpression(self, ctx:FSharpParser.ExpressionContext):
         pass

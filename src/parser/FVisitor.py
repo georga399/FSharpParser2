@@ -14,6 +14,8 @@ class FVisitor(FSharpParserVisitor):
         self._matches = 0
         self._elifs = 0
         self._CL = 0 # Условные операторы
+        self._CLI = 0
+        self._curCLI = 0
 
     def visitChildren(self, node):
         name = self._indexMap[node.getRuleIndex()]
@@ -63,29 +65,29 @@ class FVisitor(FSharpParserVisitor):
         self.addNameOperator('%i', interpolationSign_i)
         return super().visitString(ctx)
 
-    def visitInterpolated_string(self, ctx: FSharpParser.Interpolated_stringContext):  
-        name = ctx.getText()
-        self.addNameOperand(name)
-        self.addNameOperator('$')
-        pattern = re.compile(r'{.*}')
-        for m in re.finditer(pattern, name):
-            self.addNameOperator('{..}') 
-            childOperators = {}
-            childOperands = {}
-            text = m.group(0)[1:-1]
-            in_stream = InputStream(text)
-            lexer = FSharpLexer(in_stream)
-            stream = CommonTokenStream(lexer)
-            parser = FSharpParser(stream)
-            tree = parser.exprs()
-            indexMap = parser.ruleNames
-            childVisitor = FVisitor(childOperators, childOperands, indexMap) 
-            childVisitor.visit(tree)
-            for key, val in childOperands.items():
-                self.addNameOperand(key, val)
-            for key, val in childOperators.items():
-                self.addNameOperator(key, val)
-        return super().visitInterpolated_string(ctx)
+    # def visitInterpolated_string(self, ctx: FSharpParser.Interpolated_stringContext):  
+    #     name = ctx.getText()
+    #     self.addNameOperand(name)
+    #     self.addNameOperator('$')
+    #     pattern = re.compile(r'{.*}')
+    #     for m in re.finditer(pattern, name):
+    #         self.addNameOperator('{..}') 
+    #         childOperators = {}
+    #         childOperands = {}
+    #         text = m.group(0)[1:-1]
+    #         in_stream = InputStream(text)
+    #         lexer = FSharpLexer(in_stream)
+    #         stream = CommonTokenStream(lexer)
+    #         parser = FSharpParser(stream)
+    #         tree = parser.exprs()
+    #         indexMap = parser.ruleNames
+    #         childVisitor = FVisitor(childOperators, childOperands, indexMap) 
+    #         childVisitor.visit(tree)
+    #         for key, val in childOperands.items():
+    #             self.addNameOperand(key, val)
+    #         for key, val in childOperators.items():
+    #             self.addNameOperator(key, val)
+    #     return super().visitInterpolated_string(ctx)
 
     def visitChar(self, ctx: FSharpParser.CharContext):
         name = ctx.getText()
@@ -109,8 +111,12 @@ class FVisitor(FSharpParserVisitor):
         return self._CL
 
     def visitIf_then_elif_else(self, ctx: FSharpParser.If_then_elif_elseContext):
+        self._curCLI += 1
         self._CL +=1
-        return super().visitIf_then_elif_else(ctx)
+        self._CLI = max(self._CLI, self._curCLI)
+        res = super().visitIf_then_elif_else(ctx)
+        self._curCLI -= 1
+        return res
 
     def visitElif_expression(self, ctx: FSharpParser.Elif_expressionContext):
         self._CL+=1
@@ -121,20 +127,35 @@ class FVisitor(FSharpParserVisitor):
         return super().visitElse_expression(ctx)
 
     def visitWhile_do(self, ctx: FSharpParser.While_doContext):
+        self._curCLI += 1
         self._CL+=1
-        return super().visitWhile_do(ctx)
+        self._CLI = max(self._CLI, self._curCLI)
+        res = super().visitWhile_do(ctx)
+        self._curCLI -= 1
+        return res
 
     def visitFor(self, ctx: FSharpParser.ForContext):
+        self._curCLI += 1
         self._CL+=1
-        return super().visitFor(ctx)
+        self._CLI = max(self._CLI, self._curCLI)
+        res = super().visitWhile_do(ctx)
+        self._curCLI -= 1
+        return res
     
     def visitMatch_with(self, ctx: FSharpParser.Match_withContext):
+        self._curCLI += 1
+        self._CLI = max(self._CLI, self._curCLI)
         if self._matches > 0:
             self._CL += self._matches - 1
 
         self._matches = 0
-        return super().visitMatch_with(ctx)
+        res = super().visitMatch_with(ctx)
+        self._curCLI -=1
+        return res
 
     def visitMatch_case(self, ctx: FSharpParser.Match_caseContext):
         self._matches+=1
         return super().visitMatch_case(ctx)
+    
+    def GetCLI(self) -> int:
+        return self._CLI

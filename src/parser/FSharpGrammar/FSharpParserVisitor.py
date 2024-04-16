@@ -499,6 +499,11 @@ class FSharpParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by FSharpParser#cond_ops.
+    def visitCond_ops(self, ctx:FSharpParser.Cond_opsContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by FSharpParser#expression.
     def visitExpression(self, ctx:FSharpParser.ExpressionContext):
         return self.visitChildren(ctx)

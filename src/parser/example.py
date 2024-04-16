@@ -10,3 +10,4 @@ with open('samples/jilba.fs') as f:
     print(parseTable.GetOperators())
     print(f"CL: {parseTable.GetCL()}")
     print(f"cl: {parseTable.GetCl()}")
+    print(f"CLI: {parseTable.GetCLI()}")

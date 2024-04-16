@@ -61,21 +61,21 @@ fun_type: dotIentifier (RIGHT_ARROW dotIentifier)+;
 typezation: COLON (round_brackets|dotIentifier);
 
 // COUNT IT
-if_then_elif_else: IF expression+ THEN expression+ 
+if_then_elif_else: IF expression+ THEN cond_ops? expression+ 
     elif_expression*
     else_expression?;
 
 // COUNT IT
-else_expression: ELSE expression;
+else_expression: ELSE cond_ops?;
 
 // COUNT IT
-elif_expression: ELIF expression+ THEN expression+;
+elif_expression: ELIF expression+ THEN cond_ops? expression+;
 
 // COUNT IT
-while_do: WHILE expression+ DO; 
+while_do: WHILE expression+ DO cond_ops?; 
 
 // COUNT IT
-for: FOR expression+ (TO|DOWNTO|IN) expression+ DO;
+for: FOR expression+ (TO|DOWNTO|IN) expression+ DO cond_ops?;
 
 add: ADD;
 
@@ -163,7 +163,7 @@ exclamation_mark: EXCLAMATION_MARK;
 match_with: MATCH expression+ WITH match_case+;
 
 //COUNT IT
-match_case: VERTICAL_LINE expression+ RIGHT_ARROW expression+;
+match_case: VERTICAL_LINE expression+ RIGHT_ARROW cond_ops? expression+;
 
 try_with_finally: TRY expression* (WITH (VERTICAL_LINE expression* RIGHT_ARROW expression*)*)? 
    (FINALLY expression)?; 
@@ -215,6 +215,11 @@ base: BASE;
 colon_q: COLON_Q;
 
 interface: INTERFACE;
+
+cond_ops: if_then_elif_else
+            | while_do
+            | for
+            | match_with;
 
 
 expression: dotIentifier
